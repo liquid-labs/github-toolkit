@@ -13,5 +13,12 @@
   "bugs": {
     "url": "https://github.com/liquid-labs/github-toolkit/issues"
   },
-  "homepage": "https://github.com/liquid-labs/github-toolkit#readme"
+  "homepage": "https://github.com/liquid-labs/github-toolkit#readme",
+  "devDependencies": {
+    "js-yaml": "^4.1.0",
+    "shelljs": "^0.8.5"
+  },
+  "dependencies": {
+    "@liquid-labs/catalyst-scripts": "^1.0.0-alpha.57"
+  }
 }
