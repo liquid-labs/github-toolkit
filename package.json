@@ -4,7 +4,12 @@
   "description": "",
   "main": "dist/github-toolkit.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "make",
+    "lint": "make lint",
+    "lint:fix": "make lint-fix",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preversion": "make test && make lint",
+    "postversion": "git push upstream v${npm_package_version}"
   },
   "keywords": [],
   "author": "Zane Rockenbaugh <zane@liquid-labs.com>",
@@ -15,10 +20,8 @@
   },
   "homepage": "https://github.com/liquid-labs/github-toolkit#readme",
   "devDependencies": {
+    "@liquid-labs/catalyst-scripts": "^1.0.0-alpha.57",
     "js-yaml": "^4.1.0",
     "shelljs": "^0.8.5"
-  },
-  "dependencies": {
-    "@liquid-labs/catalyst-scripts": "^1.0.0-alpha.57"
   }
 }
