@@ -21,7 +21,9 @@
   "homepage": "https://github.com/liquid-labs/github-toolkit#readme",
   "devDependencies": {
     "@liquid-labs/catalyst-scripts": "^1.0.0-alpha.57",
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.1.0"
+  },
+  "dependencies": {
     "shelljs": "^0.8.5"
   }
 }
