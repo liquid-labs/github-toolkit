@@ -19,6 +19,11 @@
     "url": "https://github.com/liquid-labs/github-toolkit/issues"
   },
   "homepage": "https://github.com/liquid-labs/github-toolkit#readme",
+  "liq": {
+    "orgBase": "git@github.com:liquid-labs/Liquid-Labs.git",
+    "packageType": "node|lib",
+    "tags": []
+  },
   "devDependencies": {
     "@liquid-labs/catalyst-scripts": "^1.0.0-alpha.57",
     "js-yaml": "^4.1.0"
