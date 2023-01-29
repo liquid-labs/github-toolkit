@@ -33,7 +33,7 @@ const API_TOKEN_INVALID = 'The access token appears invalid.'
  * ### Parameters
  * - `filePath`: path to API token file. The default '~/.config/hub' is used otherwise.`
  */
-const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH }) => {
+const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH } = {}) => {
   let creds
   try {
     creds = await fs.readFile(filePath)
@@ -73,7 +73,7 @@ const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH }) => {
  * - `privKeyPath`: the path to the GitHub privaet key. Setting the parameter does not effect the test, but it is used 
  *   in reporting problems.`
  */
-const checkGitHubSSHAccess = ({ privKeyPath }) => {
+const checkGitHubSSHAccess = ({ privKeyPath } = {}) => {
   // the expected resut is idiomaticaly 1 because GitHub does not allow terminal access. But if the connection cannot be made, then the exit
   // code is different.
   const command = 'ssh -qT git@github.com 2> /dev/null'
