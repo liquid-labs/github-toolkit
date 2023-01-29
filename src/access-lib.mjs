@@ -14,7 +14,7 @@ const API_NO_TOKEN = `API credentials JSON file at '${API_CREDS_DEFAULT_PATH}' d
 const API_BAD_CHECK = 'Failed to execute API authorization check.'
 const API_TOKEN_INVALID = 'The access token appears invalid.'
 
-const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH, res, quiet = false }) => {
+const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH }) => {
   let creds
   try {
     creds = await fs.readFile(filePath)
@@ -46,7 +46,7 @@ const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH, res, qui
   // else, we're good
 }
 
-const checkGitHubSSHAccess = ({ privKeyPath, res, quiet = false }) => {
+const checkGitHubSSHAccess = ({ privKeyPath }) => {
   // the expected resut is idiomaticaly 1 because GitHub does not allow terminal access. But if the connection cannot be made, then the exit
   // code is different.
   const command = privKeyPath
