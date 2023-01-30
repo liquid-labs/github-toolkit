@@ -56,7 +56,7 @@ const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH } = {}) =
 
   const result = shell.exec(`curl -w '%{http_code}' -s -H "Authorization: token ${apiToken}" https://api.github.com/user -o /dev/null`)
   if (result.code !== 0) {
-    throw createError.InternalServiceError(API_BAD_CHECK)
+    throw createError.InternalServerError(API_BAD_CHECK)
   }
   const httpStatus = parseInt(result.stdout)
   if (httpStatus !== 200) {
