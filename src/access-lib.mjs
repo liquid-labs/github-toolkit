@@ -34,7 +34,6 @@ const API_TOKEN_INVALID = 'The access token appears invalid.'
  * - `filePath`: path to API token file. The default '~/.config/hub' is used otherwise.`
  */
 const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH } = {}) => {
-  throw createError.Unauthorized('This is a  test!')
   let creds
   try {
     creds = await fs.readFile(filePath)
