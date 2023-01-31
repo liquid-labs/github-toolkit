@@ -33,12 +33,9 @@ const setupGitHubMilestones = async({ model, projectName, projectPath, report, u
     const goldVersion = preReleaseMatch[1]
     const currPreType = preReleaseMatch[2]
     if (currPreType === 'alpha') {
-      milestones.push(goldVersion + '-alpha', goldVersion + '-beta', goldVersion + '-rc')
-    }
-    else if (currPreType === 'beta') {
       milestones.push(goldVersion + '-beta', goldVersion + '-rc')
     }
-    else if (currPreType === 'rc') {
+    else if (currPreType === 'beta') {
       milestones.push(goldVersion + '-rc')
     }
 
