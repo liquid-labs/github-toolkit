@@ -1,6 +1,9 @@
 import createError from 'http-errors'
 import shell from 'shelljs'
 
+const ORIGIN = 'origin'
+const MAIN = 'main'
+
 const determineOriginAndMain = ({ path, reporter }) => {
   const result = shell.exec(`cd ${path} && git rev-parse --abbrev-ref --symbolic-full-name @{u}`)
 
