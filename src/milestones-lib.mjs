@@ -4,15 +4,15 @@ import * as sysPath from 'node:path'
 import shell from 'shelljs'
 
 const preReleaseRe = /([0-9.]+)-([a-z]+)\.\d+$/
-const setupGitHubMilestones = async({ model, projectName, projectPath, reporter, unpublished }) => {
+const setupGitHubMilestones = async({ model, projectFQN, projectPath, reporter, unpublished }) => {
   reporter.push('Setting up milestones...')
 
   const milestones = ['backlog']
   let currVersion
   if (unpublished === false) { // i.e., is published
-    const result = shell.exec(`npm info '${projectName}'`)
+    const result = shell.exec(`npm info '${projectFQN}'`)
     if (result.code !== 0) {
-      reporter.push(`<error>Did not find npm package '${projectName}'.<rst>`)
+      reporter.push(`<error>Did not find npm package '${projectFQN}'.<rst>`)
     }
   }
   if (currVersion === undefined) {
@@ -23,7 +23,7 @@ const setupGitHubMilestones = async({ model, projectName, projectPath, reporter,
     }
 
     if (currVersion === undefined) {
-      const packageData = model?.playground?.projects?.[projectName].packageJSON
+      const packageData = model?.playground?.projects?.[projectFQN].packageJSON
       currVersion = packageData?.version
     }
   }
@@ -46,13 +46,13 @@ const setupGitHubMilestones = async({ model, projectName, projectPath, reporter,
     milestones.push(goldVersion)
   }
 
-  const currMilestoneString = shell.exec(`hub api "/repos/${projectName}/milestones"`)
+  const currMilestoneString = shell.exec(`hub api "/repos/${projectFQN}/milestones"`)
   const currMilestaneData = JSON.parse(currMilestoneString)
   const currMilestoneNames = currMilestaneData.map((m) => m.title)
 
   let milestonesSynced = true
   for (const title of milestones) {
-    if (!ensureMilestone({ currMilestoneNames, reporter, projectName, title })) milestonesSynced = false
+    if (!ensureMilestone({ currMilestoneNames, reporter, projectFQN, title })) milestonesSynced = false
   }
   reporter.push('Milestone setup complete.')
   if (milestonesSynced === false) {
@@ -60,14 +60,14 @@ const setupGitHubMilestones = async({ model, projectName, projectPath, reporter,
   }
 }
 
-const ensureMilestone = ({ currMilestoneNames, reporter, projectName, title }) => {
+const ensureMilestone = ({ currMilestoneNames, reporter, projectFQN, title }) => {
   if (currMilestoneNames.includes(title)) {
     reporter.push(`Milestone '${title}' already present.`)
     return true
   }
   else {
     reporter.push(`Attempting to add milestone '${title}'...`)
-    const result = shell.exec(`hub api -X POST "/repos/${projectName}/milestones" -f title="${title}"`)
+    const result = shell.exec(`hub api -X POST "/repos/${projectFQN}/milestones" -f title="${title}"`)
     if (result.code === 0) {
       const resultData = JSON.parse(result)
       const titleOut = resultData.title
