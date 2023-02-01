@@ -33,7 +33,7 @@ const defaultLabels = [
   }
 ]
 
-const setupGitHubLabels = ({ org, noDeleteLabels, noUpdateLabels, projectName, reporter }) => {
+const setupGitHubLabels = ({ org, noDeleteLabels, projectName, reporter }) => {
   reporter.push(`Setting up labebls for '${projectName}'`)
 
   const projectLabels = org?.projects?.DEFAULT_LABELS || defaultLabels
