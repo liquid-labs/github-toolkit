@@ -48,7 +48,7 @@ const setupGitHubMilestones = async({ model, projectName, projectPath, reporter,
 
   const currMilestoneString = shell.exec(`hub api "/repos/${projectName}/milestones"`)
   const currMilestaneData = JSON.parse(currMilestoneString)
-  const currMilestoneNames = currMilestaneData.map((m) => m.name)
+  const currMilestoneNames = currMilestaneData.map((m) => m.title)
 
   let milestonesSynced = true
   for (const title of milestones) {
@@ -56,7 +56,7 @@ const setupGitHubMilestones = async({ model, projectName, projectPath, reporter,
   }
   reporter.push('Milestone setup complete.')
   if (milestonesSynced === false) {
-    reporter.add('<warn>One or more of the milestones may be missing. Check output above.')
+    reporter.push('<warn>One or more of the milestones may be missing.<rst> Check output above.')
   }
 }
 
