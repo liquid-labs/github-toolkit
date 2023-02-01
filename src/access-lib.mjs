@@ -33,8 +33,9 @@ const API_TOKEN_INVALID = 'The access token appears invalid.'
  * ### Parameters
  * - `filePath`: path to API token file. The default '~/.config/hub' is used otherwise.`
  */
-const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH } = {}) => {
+const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH, reporter } = {}) => {
   let creds
+  reporter?.push(`Reading creds file: ${filePath}...`)
   try {
     creds = await fs.readFile(filePath)
   }
@@ -43,6 +44,7 @@ const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH } = {}) =
   }
 
   try {
+    reporter?.push('Loading yaml data...')
     creds = yaml.load(creds)
   }
   catch (e) {
@@ -54,7 +56,9 @@ const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH } = {}) =
     throw createError.Unauthorized(API_NO_TOKEN)
   }
 
-  const result = shell.exec(`curl -w '%{http_code}' -s -H "Authorization: token ${apiToken}" https://api.github.com/user -o /dev/null`)
+  const apiCheckCmd = `curl -w '%{http_code}' -s -H "Authorization: token ${apiToken}" https://api.github.com/user -o /dev/null`
+  reporter?.push('Executing API check...')
+  const result = shell.exec(apiCheckCmd)
   if (result.code !== 0) {
     throw createError.InternalServerError(API_BAD_CHECK + ' ' + result.stderr)
   }
@@ -62,6 +66,7 @@ const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH } = {}) =
   if (httpStatus !== 200) {
     throw createError.Unauthorized(API_TOKEN_INVALID)
   }
+  reporter?.push('  success!')
   // else, we're good
 }
 
@@ -73,12 +78,14 @@ const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH } = {}) =
  * - `privKeyPath`: the path to the GitHub privaet key. Setting the parameter does not effect the test, but it is used 
  *   in reporting problems.`
  */
-const checkGitHubSSHAccess = ({ privKeyPath } = {}) => {
+const checkGitHubSSHAccess = ({ privKeyPath, reporter } = {}) => {
   // the expected resut is idiomaticaly 1 because GitHub does not allow terminal access. But if the connection cannot be made, then the exit
   // code is different.
+  reporter?.push('Checking SSH access...')
   const command = 'ssh -qT git@github.com 2> /dev/null'
   const result = shell.exec(command)
-  if (result.code !== 1) {
+  if (result.code !== 1) { // let's figure out why
+    reporter?.push('  Check failed.')
     const result = shell.exec('pgrep ssh-agent')
     let msg
     if (result.code !== 0) {
@@ -89,6 +96,7 @@ const checkGitHubSSHAccess = ({ privKeyPath } = {}) => {
     }
     throw createError.Unauthorized(msg)
   }
+  reporter?.push('  success!')
   return true
 }
 

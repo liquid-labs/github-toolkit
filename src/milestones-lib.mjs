@@ -4,15 +4,15 @@ import * as sysPath from 'node:path'
 import shell from 'shelljs'
 
 const preReleaseRe = /([0-9.]+)-([a-z]+)\.\d+$/
-const setupGitHubMilestones = async({ model, projectName, projectPath, report, unpublished }) => {
-  report.push('Setting up milestones...')
+const setupGitHubMilestones = async({ model, projectName, projectPath, reporter, unpublished }) => {
+  reporter.push('Setting up milestones...')
 
   const milestones = ['backlog']
   let currVersion
   if (unpublished === false) { // i.e., is published
     const result = shell.exec(`npm info '${projectName}'`)
     if (result.code !== 0) {
-      report.push(`<error>Did not find npm package '${projectName}'.<rst>`)
+      reporter.push(`<error>Did not find npm package '${projectName}'.<rst>`)
     }
   }
   if (currVersion === undefined) {
@@ -52,36 +52,36 @@ const setupGitHubMilestones = async({ model, projectName, projectPath, report, u
 
   let milestonesSynced = true
   for (const title of milestones) {
-    if (!ensureMilestone({ currMilestoneNames, report, projectName, title })) milestonesSynced = false
+    if (!ensureMilestone({ currMilestoneNames, reporter, projectName, title })) milestonesSynced = false
   }
-  report.push('Milestone setup complete.')
+  reporter.push('Milestone setup complete.')
   if (milestonesSynced === false) {
-    report.add('<warn>One or more of the milestones may be missing. Check output above.')
+    reporter.add('<warn>One or more of the milestones may be missing. Check output above.')
   }
 }
 
-const ensureMilestone = ({ currMilestoneNames, report, projectName, title }) => {
+const ensureMilestone = ({ currMilestoneNames, reporter, projectName, title }) => {
   if (currMilestoneNames.includes(title)) {
-    report.push(`Milestone '${title}' already present.`)
+    reporter.push(`Milestone '${title}' already present.`)
     return true
   }
   else {
-    report.push(`Attempting to add milestone '${title}'...`)
+    reporter.push(`Attempting to add milestone '${title}'...`)
     const result = shell.exec(`hub api -X POST "/repos/${projectName}/milestones" -f title="${title}"`)
     if (result.code === 0) {
       const resultData = JSON.parse(result)
       const titleOut = resultData.title
       const number = resultData.number
       if (titleOut !== title) {
-        report.push(`<warn>Milestone title '${titleOut}' (${number}) does not match requested title '${title}' `)
+        reporter.push(`<warn>Milestone title '${titleOut}' (${number}) does not match requested title '${title}' `)
       }
       else {
-        report.push(`Created milestone '<em>${title}<rst>' (${number}).`)
+        reporter.push(`Created milestone '<em>${title}<rst>' (${number}).`)
       }
       return true
     }
     else {
-      report.push(`<error>Failed to create milestone '${title}': ${result.stderr}`)
+      reporter.push(`<error>Failed to create milestone '${title}': ${result.stderr}`)
       return false
     }
   }
