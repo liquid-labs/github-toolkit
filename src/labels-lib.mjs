@@ -1,3 +1,4 @@
+import createError from 'http-errors'
 import shell from 'shelljs'
 
 const defaultLabels = [
@@ -33,8 +34,8 @@ const defaultLabels = [
   }
 ]
 
-const setupGitHubLabels = ({ org, noDeleteLabels, projectFQN, reporter }) => {
-  reporter.push(`Setting up labebls for '${projectFQN}'`)
+const setupGitHubLabels = async ({ org, noDeleteLabels, projectFQN, reporter }) => {
+  reporter.push(`Setting up labels for '${projectFQN}'`)
 
   const projectLabels = org?.projects?.DEFAULT_LABELS || defaultLabels
 
@@ -42,7 +43,16 @@ const setupGitHubLabels = ({ org, noDeleteLabels, projectFQN, reporter }) => {
     reporter.push('No project labels defined; using default label set...')
   }
 
-  const currLabelDataString = shell.exec(`hub api "/repos/${projectFQN}/labels"`)
+  let currLabelDataString
+  let tryCount = 0
+  while ((currLabelDataString === undefined || currLabelDataString.code !== 0) && tryCount < 5) {
+    if (tryCount > 0) await new Promise(r => setTimeout(r, 500)) // sleep
+    currLabelDataString = shell.exec(`hub api "/repos/${projectFQN}/labels"`)
+    tryCount += 1
+  }
+  if (currLabelDataString.code !== 0)
+    throw createError.InternalServerError(`There was a problem retrieving labels for '${projectFQN}': ${currLabelDataString.stderr}`)
+
   const currLabelData = JSON.parse(currLabelDataString)
   const currLabelNames = currLabelData?.map((l) => l.name) || []
 
