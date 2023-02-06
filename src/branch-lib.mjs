@@ -4,14 +4,13 @@ import shell from 'shelljs'
 const ORIGIN = 'origin'
 const MAIN = 'main'
 
-const KNOWN_ORIGINS = [ 'origin', 'upstream' ]
-const KNOWN_MAINS = [ 'main', 'master' ]
+const KNOWN_ORIGINS = ['origin', 'upstream']
+const KNOWN_MAINS = ['main', 'master']
 
 const determineCurrentBranch = ({ projectPath, reporter }) => {
   reporter?.push('Fetching current branch name...')
   const branchResult = shell.exec(`cd '${projectPath}' && git branch | grep '*' | cut -d' ' -f2`)
-  if (branchResult.code !== 0)
-    throw createError.InternalServerError(`Could not determnie current branch for git repo at '${projectPath}'.`)
+  if (branchResult.code !== 0) { throw createError.InternalServerError(`Could not determnie current branch for git repo at '${projectPath}'.`) }
 
   return branchResult.stdout.trim()
 }
@@ -20,10 +19,9 @@ const determineOriginAndMain = ({ projectPath, reporter }) => {
   reporter?.push('Fetching latest origin data...')
   const fetchResult = shell.exec(`cd ${projectPath} && git fetch -p`)
 
-  if (fetchResult.code !== 0)
-    throw createError(`'git fetch -p' failed at '${projectPath}': ${fetchResult.stderr}.`)
+  if (fetchResult.code !== 0) { throw createError(`'git fetch -p' failed at '${projectPath}': ${fetchResult.stderr}.`) }
 
-  reporter?.push(`Checking remote branches...`)
+  reporter?.push('Checking remote branches...')
   const remoteBranchQuery = shell.exec(`cd ${projectPath} && git branch -r`)
   if (remoteBranchQuery.code !== 0) throw createError(`Could not list remote branches: ${remoteBranchQuery.stderr}`)
   const remoteBranches = remoteBranchQuery.split('\n').map((r) => r.trim().split('/'))
@@ -47,12 +45,12 @@ const determineOriginAndMain = ({ projectPath, reporter }) => {
 
   reporter?.push(`Determined origin and main branch: ${origin}/${main}.`)
 
-  return [ origin, main ]
+  return [origin, main]
 }
 
 const regularizeRemote = ({ projectPath, reporter }) => {
-  let [ originRemote ] = determineOriginAndMain({ projectPath })
-  
+  let [originRemote] = determineOriginAndMain({ projectPath })
+
   if (originRemote !== ORIGIN) {
     const renameResult = shell.exec(`cd ${projectPath} && git remote rename ${originRemote} ${ORIGIN}`)
     if (renameResult.code !== 0) {
@@ -64,7 +62,7 @@ const regularizeRemote = ({ projectPath, reporter }) => {
 }
 
 const regularizeMainBranch = ({ projectFQN, projectPath, reporter }) => {
-  let [ originRemote, mainBranch ] = determineOriginAndMain({ projectPath })
+  let [originRemote, mainBranch] = determineOriginAndMain({ projectPath })
 
   if (mainBranch !== MAIN) {
     const remoteResult = shell.exec(`cd ${projectPath} && hub api --method POST -H "Accept: application/vnd.github+json" /repos/${projectFQN}/branches/${mainBranch}/rename -f new_name='${MAIN}'`)
@@ -76,8 +74,7 @@ const regularizeMainBranch = ({ projectFQN, projectPath, reporter }) => {
 
     // Update our understanding of remote branches
     const fetchResult = shell.exec(`cd ${projectPath} && git fetch -p ${originRemote}`)
-    if (fetchResult !== 0)
-      throw createError(`'git fetch ${originRemote}' failed at '${projectPath}': ${fetchResult.stderr}.`)
+    if (fetchResult !== 0) { throw createError(`'git fetch ${originRemote}' failed at '${projectPath}': ${fetchResult.stderr}.`) }
 
     // update local branch
     const branchList = shell.exec(`cd ${projectPath} && git branch -l`)
@@ -106,6 +103,7 @@ const regularizeMainBranch = ({ projectFQN, projectPath, reporter }) => {
 }
 
 export {
+  determineCurrentBranch,
   determineOriginAndMain,
   regularizeRemote,
   regularizeMainBranch

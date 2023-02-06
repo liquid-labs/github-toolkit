@@ -17,7 +17,7 @@ fi
 Then add your GitHub key with:
 
 ssh-add ${pathToPrivKey}`
-const SSH_ACCESS_FAILURE_MSG = (pathToPrivKey) => 
+const SSH_ACCESS_FAILURE_MSG = (pathToPrivKey) =>
   `Test for SSH access to GitHub failed. Try to add your GitHub key like:\n\nssh-add ${pathToPrivKey}`
 
 const API_CREDS_DEFAULT_PATH = `${process.env.HOME}/.config/hub`
@@ -29,7 +29,7 @@ const API_TOKEN_INVALID = 'The access token appears invalid.'
 
 /**
  * Checks GitHub API access.
- * 
+ *
  * ### Parameters
  * - `filePath`: path to API token file. The default '~/.config/hub' is used otherwise.`
  */
@@ -40,7 +40,7 @@ const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH, reporter
     creds = await fs.readFile(filePath)
   }
   catch (e) {
-    throw createError.Unauthorized(API_NO_CREDENTIALS, { cause: e })
+    throw createError.Unauthorized(API_NO_CREDENTIALS, { cause : e })
   }
 
   try {
@@ -48,7 +48,7 @@ const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH, reporter
     creds = yaml.load(creds)
   }
   catch (e) {
-    throw createError.Unauthorized(API_BAD_JSON, { cause: e })
+    throw createError.Unauthorized(API_BAD_JSON, { cause : e })
   }
 
   const apiToken = creds['github.com']?.[0]?.oauth_token
@@ -71,11 +71,11 @@ const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH, reporter
 }
 
 /**
- * Checks SSH-based access to GitHub. This method relies on ssh-agent. In the case of failure, will attempt to 
+ * Checks SSH-based access to GitHub. This method relies on ssh-agent. In the case of failure, will attempt to
  * diagnose the specific issue.
- * 
+ *
  * ### Parameters
- * - `privKeyPath`: the path to the GitHub privaet key. Setting the parameter does not effect the test, but it is used 
+ * - `privKeyPath`: the path to the GitHub privaet key. Setting the parameter does not effect the test, but it is used
  *   in reporting problems.`
  */
 const checkGitHubSSHAccess = ({ privKeyPath, reporter } = {}) => {
