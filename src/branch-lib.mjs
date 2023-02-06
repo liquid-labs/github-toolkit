@@ -7,10 +7,19 @@ const MAIN = 'main'
 const KNOWN_ORIGINS = [ 'origin', 'upstream' ]
 const KNOWN_MAINS = [ 'main', 'master' ]
 
+const determineCurrentBranch = ({ projectPath, reporter }) => {
+  reporter?.push('Fetching current branch name...')
+  const branchResult = shell.exec(`cd '${projectPath}' && git branch | grep '*' | cut -d' ' -f2`)
+  if (branchResult.code !== 0)
+    throw createError.InternalServerError(`Could not determnie current branch for git repo at '${projectPath}'.`)
+
+  return branchResult.stdout.trim()
+}
+
 const determineOriginAndMain = ({ projectPath, reporter }) => {
-  reporter?.push(`Fetching latest origin data...`)
+  reporter?.push('Fetching latest origin data...')
   const fetchResult = shell.exec(`cd ${projectPath} && git fetch -p`)
-  
+
   if (fetchResult.code !== 0)
     throw createError(`'git fetch -p' failed at '${projectPath}': ${fetchResult.stderr}.`)
 
