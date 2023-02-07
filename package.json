@@ -8,8 +8,9 @@
     "lint": "make lint",
     "lint:fix": "make lint-fix",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "preversion": "make test && make lint",
-    "postversion": "git push upstream v${npm_package_version}"
+    "preversion": "npm run qa",
+    "postversion": "git push upstream v${npm_package_version}",
+    "qa": "make test && make lint"
   },
   "keywords": [],
   "author": "Zane Rockenbaugh <zane@liquid-labs.com>",
