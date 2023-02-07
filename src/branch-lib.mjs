@@ -7,6 +7,7 @@ const MAIN = 'main'
 const KNOWN_ORIGINS = ['origin', 'upstream']
 const KNOWN_MAINS = ['main', 'master']
 
+// TODO: move this to 'git-toolkit'
 const determineCurrentBranch = ({ projectPath, reporter }) => {
   reporter?.push('Fetching current branch name...')
   const branchResult = shell.exec(`cd '${projectPath}' && git branch | grep '*' | cut -d' ' -f2`)
