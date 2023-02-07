@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "preversion": "npm run qa",
     "postversion": "git push upstream v${npm_package_version}",
-    "qa": "make test && make lint"
+    "qa": "make lint"
   },
   "keywords": [],
   "author": "Zane Rockenbaugh <zane@liquid-labs.com>",

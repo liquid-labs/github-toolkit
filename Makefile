@@ -1,5 +1,5 @@
 .DELETE_ON_ERROR:
-.PHONY: all build test lint lint-fix
+.PHONY: all build test lint lint-fix qa
 
 default: build
 
@@ -42,3 +42,5 @@ lint:
 
 lint-fix:
 	JS_LINT_TARGET=$(GITHUB_TOOLKIT_SRC) $(CATALYST_SCRIPTS) lint-fix
+
+qa: lint
