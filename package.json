@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@liquid-labs/catalyst-scripts": "^1.0.0-alpha.57",
+    "@liquid-labs/git-toolkit": "^1.0.0-alpha.3",
     "js-yaml": "^4.1.0"
   },
   "dependencies": {
