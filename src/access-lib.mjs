@@ -2,6 +2,7 @@ import * as fs from 'node:fs/promises'
 
 import createError from 'http-errors'
 import yaml from 'js-yaml'
+import { Octokit } from 'octokit'
 import shell from 'shelljs'
 
 const SSH_AGENT_NOT_RUNNING = (pathToPrivKey) =>
@@ -100,8 +101,8 @@ const checkGitHubSSHAccess = ({ privKeyPath, reporter } = {}) => {
   return true
 }
 
-const determineGitHubLogin = ({ authToken }) => {
-  const octokit = new Octokit({ auth: authToken })
+const determineGitHubLogin = async({ authToken }) => {
+  const octokit = new Octokit({ auth : authToken })
   return await octokit.request('GET /user', {})
 }
 
