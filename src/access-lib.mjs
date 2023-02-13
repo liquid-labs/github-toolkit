@@ -100,7 +100,13 @@ const checkGitHubSSHAccess = ({ privKeyPath, reporter } = {}) => {
   return true
 }
 
+const determineGitHubLogin = ({ authToken }) => {
+  const octokit = new Octokit({ auth: authToken })
+  return await octokit.request('GET /user', {})
+}
+
 export {
   checkGitHubAPIAccess,
-  checkGitHubSSHAccess
+  checkGitHubSSHAccess,
+  determineGitHubLogin
 }
