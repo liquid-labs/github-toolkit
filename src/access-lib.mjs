@@ -2,8 +2,9 @@ import * as fs from 'node:fs/promises'
 
 import createError from 'http-errors'
 import yaml from 'js-yaml'
-import { Octokit } from 'octokit'
 import shell from 'shelljs'
+
+import { Octocache } from '@liquid-labs/octocache'
 
 const SSH_AGENT_NOT_RUNNING = (pathToPrivKey) =>
   `It looks like the 'ssh-agent' isn't running. Add the following to '.bashrc' or equivalent:
@@ -102,8 +103,8 @@ const checkGitHubSSHAccess = ({ privKeyPath, reporter } = {}) => {
 }
 
 const determineGitHubLogin = async({ authToken }) => {
-  const octokit = new Octokit({ auth : authToken })
-  return await octokit.request('GET /user', {})
+  const octokit = new Octocache({ authToken })
+  return await octokit.request('GET /user')
 }
 
 export {

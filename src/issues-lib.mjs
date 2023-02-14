@@ -1,7 +1,7 @@
 import createError from 'http-errors'
-import { Octokit } from 'octokit'
 
 import { workBranchName } from '@liquid-labs/git-toolkit'
+import { Octocache } from '@liquid-labs/octocache'
 
 import { determineGitHubLogin } from './access-lib'
 
@@ -12,18 +12,24 @@ const claimIssues = async({
   authToken,
   claimLabel = DEFAULT_CLAIM_LABEL,
   comment/* default below */,
-  issues, noAutoAssign = false
+  issues,
+  noAutoAssign = false,
+  reporter
 }) => {
-  const octokit = new Octokit({ auth : authToken })
+  const octokit = new Octocache({ authToken })
   const workBranch = workBranchName({ primaryIssueID : issues[0] })
   comment = comment || `Work for this issue will begin begin on branch ${workBranch}.`
 
   if (assignee === undefined && noAutoAssign !== true) {
-    assignee = determineGitHubLogin({ authToken })
+    reporter?.push('Try to determine assignee from git config...')
+    const userData = await determineGitHubLogin({ authToken })
+    assignee = userData.login
+    reporter?.push('  got: ' + assignee)
   }
 
   const issuesUpated = []
   for (const issue of issues) {
+    reporter?.push(`Checking issue '${issue}'...`)
     const [org, projectBaseName, issueNumber] = issue.split('/')
 
     try {
@@ -38,19 +44,37 @@ const claimIssues = async({
       throwVerifyError({ e, issueId : issue, issuesUpated, targetName : claimLabel, targetType : 'label' })
     }
 
-    try {
-      await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-        owner        : org,
-        repo         : projectBaseName,
-        issue_number : issueNumber,
-        body         : comment
-      })
+    reporter?.push('Checking existing comments...')
+    const comments = await octokit.paginate('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+      owner: org,
+      repo: projectBaseName,
+      issue_number: issueNumber
+    })
+    let commentFound = false
+    for (const issueComment of comments) {
+      if (issueComment.body === comment) {
+        reporter?.push(`  Found existing comment exact match; skipping adding comment.`)
+        commentFound = true
+        break;
+      }
     }
-    catch (e) {
-      throwVerifyError({ e, issueId : issue, issuesUpated, targetType : 'comment' })
+
+    if (commentFound === false) {
+      try {
+        await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+          owner        : org,
+          repo         : projectBaseName,
+          issue_number : issueNumber,
+          body         : comment
+        })
+      }
+      catch (e) {
+        throwVerifyError({ e, issueId : issue, issuesUpated, targetType : 'comment' })
+      }
     }
 
     if (assignee !== undefined) {
+      reporter?.push(`Attempting to assign the issue to GH user: ${assignee}...`)
       try {
         await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/assignees', {
           owner        : org,
@@ -68,18 +92,14 @@ const claimIssues = async({
 
 const verifyIssuesExist = async({ authToken, issues, notClosed = false }) => {
   const issueData = []
-  const octokit = new Octokit({ auth : authToken })
+  const octokit = new Octocache({ authToken })
 
   for (const issueSpec of issues) {
     const [org, project, number] = issueSpec.split('/')
 
     let issue
     try {
-      issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}', {
-        owner        : org,
-        repo         : project,
-        issue_number : number
-      })
+      issue = await octokit.request(`GET /repos/${org}/${project}/issues/${number}`)
     }
     catch (e) {
       if (e.status === 404)
