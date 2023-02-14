@@ -24,8 +24,7 @@ const claimIssues = async({
 
   const issuesUpated = []
   for (const issue of issues) {
-    const [projectFQN, issueNumber] = issue.split('-')
-    const [org, projectBaseName] = projectFQN.split('/')
+    const [org, projectBaseName, issueNumber] = issue.split('/')
 
     try {
       await octokit.request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
@@ -72,15 +71,21 @@ const verifyIssuesExist = async({ authToken, issues, notClosed = false }) => {
   const octokit = new Octokit({ auth : authToken })
 
   for (const issueSpec of issues) {
-    const [org, project, number] = issueSpec.split(/[/-]/)
+    const [org, project, number] = issueSpec.split('/')
 
-    const issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}', {
-      owner        : org,
-      repo         : project,
-      issue_number : number
-    })
-
-    if (!issue) throw createError.NotFound(`No issue found. Verify issue '${issueSpec}' is valid.`)
+    let issue
+    try {
+      issue = await octokit.request('GET /repos/{owner}/{repo}/issues/{issue_number}', {
+        owner        : org,
+        repo         : project,
+        issue_number : number
+      })
+    }
+    catch (e) {
+      if (e.status === 404)
+        throw createError.NotFound(`No issue found. Verify issue '${issueSpec}' is valid.`, { cause: e })
+      else throw e
+    }
 
     if (notClosed === true && issue.state === 'closed') {
       throw createError.BadRequest(`Issue ${issueSpec} is 'closed'.`)
