@@ -46,16 +46,16 @@ const claimIssues = async({
 
     reporter?.push('Checking existing comments...')
     const comments = await octokit.paginate('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
-      owner: org,
-      repo: projectBaseName,
-      issue_number: issueNumber
+      owner        : org,
+      repo         : projectBaseName,
+      issue_number : issueNumber
     })
     let commentFound = false
     for (const issueComment of comments) {
       if (issueComment.body === comment) {
-        reporter?.push(`  Found existing comment exact match; skipping adding comment.`)
+        reporter?.push('  Found existing comment exact match; skipping adding comment.')
         commentFound = true
-        break;
+        break
       }
     }
 
@@ -90,12 +90,12 @@ const claimIssues = async({
   } // for (const issue...)
 }
 
-const releaseIssues = async ({ authToken, comment, issues, noUnassign, noUnlabel, reporter }) => {
+const releaseIssues = async({ authToken, comment, issues, noUnassign, noUnlabel, reporter }) => {
   const octocache = new Octocache({ authToken })
   const issuesUpdated = []
 
   for (const issue of issues) {
-    const [ org, project, number ] = issue.split('/')
+    const [org, project, number] = issue.split('/')
 
     if (noUnassign !== true) {
       reporter?.push(`Getting current assignments for ${issue}...`)
@@ -104,9 +104,9 @@ const releaseIssues = async ({ authToken, comment, issues, noUnassign, noUnlabel
         const assignees = assigneesData.map((a) => a.login)
         reporter?.push(`Removing assignees from issue ${issue}...`)
         await octocache.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/assignees', {
-          owner: org,
-          repo: project,
-          issue_number: number,
+          owner        : org,
+          repo         : project,
+          issue_number : number,
           assignees
         })
       }
@@ -116,10 +116,10 @@ const releaseIssues = async ({ authToken, comment, issues, noUnassign, noUnlabel
       reporter?.push(`About to removed 'assigned' label from issue ${issue}...`)
       try {
         await octocache.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
-          owner: org,
-          repo: project,
-          issue_number: number,
-          name: 'assigned'
+          owner        : org,
+          repo         : project,
+          issue_number : number,
+          name         : 'assigned'
         })
       }
       catch (e) {
@@ -162,8 +162,7 @@ const verifyIssuesExist = async({ authToken, issues, notClosed = false }) => {
       issue = await octokit.request(`GET /repos/${org}/${project}/issues/${number}`)
     }
     catch (e) {
-      if (e.status === 404)
-        throw createError.NotFound(`No issue found. Verify issue '${issueSpec}' is valid.`, { cause: e })
+      if (e.status === 404) { throw createError.NotFound(`No issue found. Verify issue '${issueSpec}' is valid.`, { cause : e }) }
       else throw e
     }
 
