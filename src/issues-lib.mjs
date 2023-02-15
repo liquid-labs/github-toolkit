@@ -27,7 +27,7 @@ const claimIssues = async({
     reporter?.push('  got: ' + assignee)
   }
 
-  const issuesUpated = []
+  const issuesUpdated = []
   for (const issue of issues) {
     reporter?.push(`Checking issue '${issue}'...`)
     const [org, projectBaseName, issueNumber] = issue.split('/')
@@ -41,7 +41,7 @@ const claimIssues = async({
       })
     }
     catch (e) {
-      throwVerifyError({ e, issueId : issue, issuesUpated, targetName : claimLabel, targetType : 'label' })
+      throwVerifyError({ e, issueId : issue, issuesUpdated, targetName : claimLabel, targetType : 'label' })
     }
 
     reporter?.push('Checking existing comments...')
@@ -69,7 +69,7 @@ const claimIssues = async({
         })
       }
       catch (e) {
-        throwVerifyError({ e, issueId : issue, issuesUpated, targetType : 'comment' })
+        throwVerifyError({ e, issueId : issue, issuesUpdated, targetType : 'comment' })
       }
     }
 
@@ -84,10 +84,70 @@ const claimIssues = async({
         })
       }
       catch (e) {
-        throwVerifyError({ e, issueId : issue, issuesUpated, targetName : assignee, targetType : 'assignee' })
+        throwVerifyError({ e, issueId : issue, issuesUpdated, targetName : assignee, targetType : 'assignee' })
       }
     }
   } // for (const issue...)
+}
+
+const releaseIssues = async ({ authToken, comment, issues, noUnassign, noUnlabel, reporter }) => {
+  const octocache = new Octocache({ authToken })
+  const issuesUpdated = []
+
+  for (const issue of issues) {
+    const [ org, project, number ] = issue.split('/')
+
+    if (noUnassign !== true) {
+      reporter?.push(`Getting current assignments for ${issue}...`)
+      const assigneesData = await octocache.paginate(`GET /repos/${org}/${project}/assignees`)
+      if (assigneesData.length > 0) {
+        const assignees = assigneesData.map((a) => a.login)
+        reporter?.push(`Removing assignees from issue ${issue}...`)
+        await octocache.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/assignees', {
+          owner: org,
+          repo: project,
+          issue_number: number,
+          assignees
+        })
+      }
+    }
+
+    if (noUnlabel !== true) {
+      reporter?.push(`About to removed 'assigned' label from issue ${issue}...`)
+      try {
+        await octocache.request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
+          owner: org,
+          repo: project,
+          issue_number: number,
+          name: 'assigned'
+        })
+      }
+      catch (e) {
+        if (e.status !== 404) throw e
+        // else the label is not found, which is OK
+      }
+    }
+
+    if (comment !== '') {
+      if (comment === undefined) {
+        comment = 'Issue released.'
+      }
+      reporter?.push(`About to add comment to issue ${issue}...`)
+      try {
+        await octocache.request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+          owner        : org,
+          repo         : project,
+          issue_number : number,
+          body         : comment
+        })
+      }
+      catch (e) {
+        throwVerifyError({ e, issueId : issue, issuesUpdated, targetType : 'comment' })
+      }
+    }
+
+    issuesUpdated.push(issue)
+  } // for (const issue of issues) {...
 }
 
 const verifyIssuesExist = async({ authToken, issues, notClosed = false }) => {
@@ -131,9 +191,9 @@ const verifyIssuesAvailable = async({ authToken, claimLabel = DEFAULT_CLAIM_LABE
   }
 }
 
-const throwVerifyError = ({ e, issueId, issuesUpated, targetName, targetType }) => {
+const throwVerifyError = ({ e, issueId, issuesUpdated, targetName, targetType }) => {
   let message = ''
-  if (issuesUpated.length > 0) { message += `Operation partially succeeded and the following issues were updated: ${issuesUpated.join(', ')}. ` }
+  if (issuesUpdated.length > 0) { message += `Operation partially succeeded and the following issues were updated: ${issuesUpdated.join(', ')}. ` }
   message += `There was an error adding ${targetName ? 'the' : 'a'} ${targetType} ${targetName ? `'${targetName}'` : ''} to ${issueId}: ${e.message}.`
 
   throw createError.InternalServerError(message, { cause : e })
@@ -141,6 +201,7 @@ const throwVerifyError = ({ e, issueId, issuesUpated, targetName, targetType }) 
 
 export {
   claimIssues,
+  releaseIssues,
   verifyIssuesExist,
   verifyIssuesAvailable
 }
