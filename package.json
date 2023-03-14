@@ -26,11 +26,11 @@
   },
   "devDependencies": {
     "@liquid-labs/catalyst-scripts": "^1.0.0-alpha.57",
-    "@liquid-labs/git-toolkit": "^1.0.0-alpha.5",
     "js-yaml": "^4.1.0"
   },
   "dependencies": {
-    "@liquid-labs/octocache": "^1.0.0-alpha.2",
+    "@liquid-labs/git-toolkit": "^1.0.0-alpha.9",
+    "@liquid-labs/octocache": "^1.0.0-alpha.3",
     "@liquid-labs/shell-toolkit": "^1.0.0-alpha.4",
     "http-errors": "^2.0.0"
   }

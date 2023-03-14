@@ -1,4 +1,4 @@
-import { determineOriginAndMain } from '@liquid-labs/git-toolkit'
+import { determineLocalMain, determineOriginAndMain } from '@liquid-labs/git-toolkit'
 import { Octocache } from '@liquid-labs/octocache'
 import { tryExec } from '@liquid-labs/shell-toolkit'
 
@@ -19,41 +19,43 @@ const regularizeRemote = ({ projectPath, reporter }) => {
   }
 }
 
-const regularizeMainBranch = ({ authToken, projectFQN, projectPath, reporter }) => {
+const regularizeMainBranch = async ({ authToken, projectFQN, projectPath, reporter }) => {
   let [originRemote, mainBranch] = determineOriginAndMain({ projectPath })
 
   if (mainBranch !== MAIN) {
     const octocache = new Octocache({ authToken })
 
     reporter?.push(`About to rename branch '${mainBranch}' to '${MAIN}'...`)
-    octocache.request(`POST /repos/${projectFQN}/branches/${mainBranch}/rename`, { new_name : MAIN })
+    await octocache.request(`POST /repos/${projectFQN}/branches/${mainBranch}/rename`, { new_name : MAIN })
     reporter?.push('   success.')
 
     // Update our understanding of remote branches
     tryExec(`cd ${projectPath} && git fetch -p ${originRemote}`)
-
-    // update local branch
-    const branchList =
-      tryExec(`cd ${projectPath} && git branch -l`, { msg : `Could not list branches at '${projectPath}'` }).stdout
-    const branchNames = branchList.split('\n').map((e) => e.trim().replace(/^\*\s*/, ''))
-    if (branchNames.includes(MAIN)) reporter.push(`Local branch '${MAIN}' already exists.`)
-    else {
-      reporter?.push(`About to rename local branch from <code>${mainBranch}<rst> to <code>${MAIN}<rst>...`)
-      tryExec(
-        `cd ${projectPath} && git branch -m ${mainBranch} ${MAIN}`,
-        { msg : `Could not rename main branch from '${mainBranch}' to '${MAIN}'.` })
-      reporter?.push(`Renamed local branch '${mainBranch}' to '${MAIN}'.`)
-    }
-
-    mainBranch = MAIN
-
-    tryExec(
-      `cd ${projectPath} && git branch --set-upstream-to ${originRemote}/${MAIN}`,
-      { msg : `Could not update local branch '${MAIN} to track ${originRemote}/${MAIN}.` }
-    )
-
-    reporter?.push(`Updated local main branch '${MAIN}' to track ${originRemote}/${MAIN}'.`)
   }
+  // update local branch
+  const branchList =
+    tryExec(`cd ${projectPath} && git branch -l`, { msg : `Could not list branches at '${projectPath}'` }).stdout
+  const branchNames = branchList.split('\n').map((e) => e.trim().replace(/^\*\s*/, ''))
+  if (branchNames.includes(MAIN)) reporter.push(`Local branch '${MAIN}' already exists.`)
+  else {
+    const localMain = determineLocalMain({ projectPath })
+
+
+    reporter?.push(`About to rename local branch from <code>${localMain}<rst> to <code>${MAIN}<rst>...`)
+    tryExec(
+      `cd ${projectPath} && git branch -m ${localMain} ${MAIN}`,
+      { msg : `Could not rename main branch from '${localMain}' to '${MAIN}'.` })
+    reporter?.push('  success.')
+  }
+
+  mainBranch = MAIN
+
+  tryExec(
+    `cd ${projectPath} && git branch --set-upstream-to ${originRemote}/${MAIN}`,
+    { msg : `Could not update local branch '${MAIN} to track ${originRemote}/${MAIN}.` }
+  )
+
+  reporter?.push(`Updated local main branch '${MAIN}' to track ${originRemote}/${MAIN}'.`)
 }
 
 export {
