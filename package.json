@@ -30,8 +30,8 @@
     "js-yaml": "^4.1.0"
   },
   "dependencies": {
-    "@liquid-labs/octocache": "file:.yalc/@liquid-labs/octocache",
-    "http-errors": "^2.0.0",
-    "shelljs": "^0.8.5"
+    "@liquid-labs/octocache": "^1.0.0-alpha.2",
+    "@liquid-labs/shell-toolkit": "^1.0.0-alpha.4",
+    "http-errors": "^2.0.0"
   }
 }

@@ -1,5 +1,8 @@
 import createError from 'http-errors'
-import shell from 'shelljs'
+
+import { Octocache } from '@liquid-labs/octocache'
+
+import { getGitHubAPIAuthToken } from './access-lib'
 
 const defaultLabels = [
   {
@@ -43,11 +46,14 @@ const setupGitHubLabels = async({ org, noDeleteLabels, projectFQN, reporter }) =
     reporter.push('No project labels defined; using default label set...')
   }
 
+  const authToken = await getGitHubAPIAuthToken({ reporter })
+  const octocache = new Octocache({ authToken })
+
   let currLabelDataString
   let tryCount = 0
   while ((currLabelDataString === undefined || currLabelDataString.code !== 0) && tryCount < 5) {
     if (tryCount > 0) await new Promise(resolve => setTimeout(resolve, 500)) // sleep
-    currLabelDataString = shell.exec(`hub api "/repos/${projectFQN}/labels"`)
+    currLabelDataString = octocache.request(`GET /repos/${projectFQN}/labels`)
     tryCount += 1
   }
   if (currLabelDataString.code !== 0) { throw createError.InternalServerError(`There was a problem retrieving labels for '${projectFQN}': ${currLabelDataString.stderr}`) }
@@ -62,24 +68,25 @@ const setupGitHubLabels = async({ org, noDeleteLabels, projectFQN, reporter }) =
   for (const excessLabelName of excessLabelNames) {
     if (noDeleteLabels === true) labelsSynced = false
     else {
-      const result = shell.exec(`hub api -X DELETE "/repos/${projectFQN}/labels/${excessLabelName}"`)
-      if (result.code === 0) currLabelData.splice(currLabelData.findIndex((l) => l.name === excessLabelName), 1)
-      else reporter.push(`There was an error removing excess label '${excessLabelName}...`)
+      try {
+        octocache.reqeust(`DELETE /repos/${projectFQN}/labels/${excessLabelName}`)
+        currLabelData.splice(currLabelData.findIndex((l) => l.name === excessLabelName), 1)
+      }
+      catch (e) {
+        reporter.push(`<warn>There was an error removing excess label '${excessLabelName}.<rst>`)
+      }
     }
   }
 
   for (const { name, description, color } of missinglabels) {
     reporter.push(`Adding label '<em>${name}<rst>...`)
-    const result = shell.exec(`hub api -X POST "/repos/${projectFQN}/labels" \\
-        -f name="${name}" \\
-        -f description="${description}" \\
-        -f color="${color}"`)
-    if (result.code === 0) {
+    try {
+      octocache.request(`POST /repos/${projectFQN}/labels`, { name, description, color })
       currLabelData.push({ name, description, color })
     }
-    else {
+    catch (e) {
       labelsSynced = false
-      reporter.push(`  There was an issue creating label '${name}': ${result.stderr}`)
+      reporter.push(`  <warn>There was an issue creating label <code>${name}<rst>: ${e.message}`, { cause : e })
     }
   }
 
@@ -90,12 +97,12 @@ const setupGitHubLabels = async({ org, noDeleteLabels, projectFQN, reporter }) =
 
     if (description !== currDesc || color !== currColor) {
       reporter.push(`Updating definition for label '<em>${name}<rst>'...`)
-      const result = shell.exec(`hub api -X PATCH "/repos/${projectFQN}/labels/${name}" \\
-        -f description="${description}" \\
-        -f color="${color}"`)
-      if (result.code !== 0) {
+      try {
+        octocache.request(`PATCH /repos/${projectFQN}/labels/${name}`, { color, description })
+      }
+      catch (e) {
         labelsSynced = false
-        reporter.push(`There was an error updating label '<em>${name}<rst>: ${result.stderr}`)
+        reporter?.push(`<warn>There was an error updating label '<em>${name}<rst>: ${e.message}`, { cause : e })
       }
     }
   }
