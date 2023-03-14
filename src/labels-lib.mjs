@@ -49,16 +49,21 @@ const setupGitHubLabels = async({ org, noDeleteLabels, projectFQN, reporter }) =
   const authToken = await getGitHubAPIAuthToken({ reporter })
   const octocache = new Octocache({ authToken })
 
-  let currLabelDataString
+  let currLabelData
   let tryCount = 0
-  while ((currLabelDataString === undefined || currLabelDataString.code !== 0) && tryCount < 5) {
+  while (currLabelData === undefined && tryCount < 5) {
     if (tryCount > 0) await new Promise(resolve => setTimeout(resolve, 500)) // sleep
-    currLabelDataString = octocache.request(`GET /repos/${projectFQN}/labels`)
     tryCount += 1
+    try {
+      currLabelData = await octocache.request(`GET /repos/${projectFQN}/labels`)
+    }
+    catch (e) {
+      if (tryCount >= 5) {
+        throw createError.InternalServerError(`There was a problem retrieving labels for '${projectFQN}': ${e.message}`, { cause : e })
+      }
+    }
   }
-  if (currLabelDataString.code !== 0) { throw createError.InternalServerError(`There was a problem retrieving labels for '${projectFQN}': ${currLabelDataString.stderr}`) }
 
-  const currLabelData = JSON.parse(currLabelDataString)
   const currLabelNames = currLabelData?.map((l) => l.name) || []
 
   const excessLabelNames = currLabelNames.filter((n) => !projectLabels.some((l) => l.name === n))
@@ -81,7 +86,7 @@ const setupGitHubLabels = async({ org, noDeleteLabels, projectFQN, reporter }) =
   for (const { name, description, color } of missinglabels) {
     reporter.push(`Adding label '<em>${name}<rst>...`)
     try {
-      octocache.request(`POST /repos/${projectFQN}/labels`, { name, description, color })
+      await octocache.request(`POST /repos/${projectFQN}/labels`, { name, description, color })
       currLabelData.push({ name, description, color })
     }
     catch (e) {
@@ -98,7 +103,7 @@ const setupGitHubLabels = async({ org, noDeleteLabels, projectFQN, reporter }) =
     if (description !== currDesc || color !== currColor) {
       reporter.push(`Updating definition for label '<em>${name}<rst>'...`)
       try {
-        octocache.request(`PATCH /repos/${projectFQN}/labels/${name}`, { color, description })
+        await octocache.request(`PATCH /repos/${projectFQN}/labels/${name}`, { color, description })
       }
       catch (e) {
         labelsSynced = false

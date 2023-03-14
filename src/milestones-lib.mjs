@@ -53,9 +53,8 @@ const setupGitHubMilestones = async({ model, projectFQN, projectPath, reporter, 
   const authToken = await getGitHubAPIAuthToken({ reporter })
   const octocache = new Octocache({ authToken })
 
-  const currMilestoneString = octocache.request(`GET /repos/${projectFQN}/milestones`)
-  const currMilestaneData = JSON.parse(currMilestoneString)
-  const currMilestoneNames = currMilestaneData.map((m) => m.title)
+  const currMilestoneData = await octocache.request(`GET /repos/${projectFQN}/milestones`)
+  const currMilestoneNames = currMilestoneData.map((m) => m.title)
 
   let milestonesSynced = true
   for (const title of milestones) {
@@ -78,8 +77,7 @@ const ensureMilestone = async({ currMilestoneNames, reporter, projectFQN, title 
       const authToken = await getGitHubAPIAuthToken({ reporter })
       const octocache = new Octocache({ authToken })
 
-      const result = octocache.request(`POST /repos/${projectFQN}/milestones`, { title })
-      const resultData = JSON.parse(result)
+      const resultData = await octocache.request(`POST /repos/${projectFQN}/milestones`, { title })
       const titleOut = resultData.title
       const number = resultData.number
       if (titleOut !== title) {
