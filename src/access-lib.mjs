@@ -2,9 +2,9 @@ import * as fs from 'node:fs/promises'
 
 import createError from 'http-errors'
 import yaml from 'js-yaml'
-import shell from 'shelljs'
 
 import { Octocache } from '@liquid-labs/octocache'
+import { tryExec } from '@liquid-labs/shell-toolkit'
 
 const SSH_AGENT_NOT_RUNNING = (pathToPrivKey) =>
   `It looks like the 'ssh-agent' isn't running. Add the following to '.bashrc' or equivalent:
@@ -35,32 +35,13 @@ const API_TOKEN_INVALID = 'The access token appears invalid.'
  * ### Parameters
  * - `filePath`: path to API token file. The default '~/.config/hub' is used otherwise.`
  */
-const checkGitHubAPIAccess = async({ filePath = API_CREDS_DEFAULT_PATH, reporter } = {}) => {
-  let creds
-  reporter?.push(`Reading creds file: ${filePath}...`)
-  try {
-    creds = await fs.readFile(filePath)
-  }
-  catch (e) {
-    throw createError.Unauthorized(API_NO_CREDENTIALS, { cause : e })
-  }
+const checkGitHubAPIAccess = async({ filePath, reporter } = {}) => {
+  const apiToken = await getGitHubAPIAuthToken({ filePath, reporter })
 
-  try {
-    reporter?.push('Loading yaml data...')
-    creds = yaml.load(creds)
-  }
-  catch (e) {
-    throw createError.Unauthorized(API_BAD_JSON, { cause : e })
-  }
-
-  const apiToken = creds['github.com']?.[0]?.oauth_token
-  if (!apiToken) {
-    throw createError.Unauthorized(API_NO_TOKEN)
-  }
-
+  // We could replace this with octocache, but the header check and everything is already setup so...
   const apiCheckCmd = `curl -w '%{http_code}' -s -H "Authorization: token ${apiToken}" https://api.github.com/user -o /dev/null`
   reporter?.push('Executing API check...')
-  const result = shell.exec(apiCheckCmd)
+  const result = tryExec(apiCheckCmd, { noThrow : true })
   if (result.code !== 0) {
     throw createError.InternalServerError(API_BAD_CHECK + ' ' + result.stderr)
   }
@@ -85,10 +66,11 @@ const checkGitHubSSHAccess = ({ privKeyPath, reporter } = {}) => {
   // code is different.
   reporter?.push('Checking SSH access...')
   const command = 'ssh -qT git@github.com 2> /dev/null'
-  const result = shell.exec(command)
+
+  const result = tryExec(command, { noThrow : true })
   if (result.code !== 1) { // let's figure out why
     reporter?.push('  Check failed.')
-    const result = shell.exec('pgrep ssh-agent')
+    const result = tryExec('pgrep ssh-agent', { noThrow : true })
     let msg
     if (result.code !== 0) {
       msg = SSH_AGENT_NOT_RUNNING(privKeyPath || '/path/to/private-key')
@@ -107,8 +89,35 @@ const determineGitHubLogin = async({ authToken }) => {
   return await octokit.request('GET /user')
 }
 
+const getGitHubAPIAuthToken = async({ filePath = API_CREDS_DEFAULT_PATH, reporter }) => {
+  let creds
+  reporter?.push(`Reading creds file: ${filePath}...`)
+  try {
+    creds = await fs.readFile(filePath)
+  }
+  catch (e) {
+    throw createError.Unauthorized(API_NO_CREDENTIALS, { cause : e })
+  }
+
+  try {
+    reporter?.push('Loading yaml data...')
+    creds = yaml.load(creds)
+  }
+  catch (e) {
+    throw createError.Unauthorized(API_BAD_JSON, { cause : e })
+  }
+
+  const apiToken = creds['github.com']?.[0]?.oauth_token
+  if (!apiToken) {
+    throw createError.Unauthorized(API_NO_TOKEN)
+  }
+
+  return apiToken
+}
+
 export {
   checkGitHubAPIAccess,
   checkGitHubSSHAccess,
-  determineGitHubLogin
+  determineGitHubLogin,
+  getGitHubAPIAuthToken
 }

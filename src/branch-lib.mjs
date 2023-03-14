@@ -1,7 +1,6 @@
-import createError from 'http-errors'
-import shell from 'shelljs'
-
 import { determineOriginAndMain } from '@liquid-labs/git-toolkit'
+import { Octocache } from '@liquid-labs/octocache'
+import { tryExec } from '@liquid-labs/shell-toolkit'
 
 const ORIGIN = 'origin'
 const MAIN = 'main'
@@ -10,52 +9,49 @@ const regularizeRemote = ({ projectPath, reporter }) => {
   let [originRemote] = determineOriginAndMain({ projectPath })
 
   if (originRemote !== ORIGIN) {
-    const renameResult = shell.exec(`cd ${projectPath} && git remote rename ${originRemote} ${ORIGIN}`)
-    if (renameResult.code !== 0) {
-      throw createError.InternalServerError(`Could not rename origin remote from '${originRemote}' to '${ORIGIN}'.`)
-    }
+    tryExec(
+      `cd ${projectPath} && git remote rename ${originRemote} ${ORIGIN}`,
+      { msg : `Could not rename origin remote from '${originRemote}' to '${ORIGIN}'.` }
+    )
+
     reporter?.push(`Updated remote origin '${originRemote}' to '${ORIGIN}'.`)
     originRemote = ORIGIN
   }
 }
 
-const regularizeMainBranch = ({ projectFQN, projectPath, reporter }) => {
+const regularizeMainBranch = ({ authToken, projectFQN, projectPath, reporter }) => {
   let [originRemote, mainBranch] = determineOriginAndMain({ projectPath })
 
   if (mainBranch !== MAIN) {
-    const remoteResult = shell.exec(`cd ${projectPath} && hub api --method POST -H "Accept: application/vnd.github+json" /repos/${projectFQN}/branches/${mainBranch}/rename -f new_name='${MAIN}'`)
-    if (remoteResult.code !== 0) {
-      throw createError.InternalServerError(`Could not rename remote main branch '${mainBranch}' to '${MAIN}': `
-        + remoteResult.stderr)
-    }
-    reporter?.push(`Renamed remote main branch from '${mainBranch}' to '${MAIN}'.`)
+    const octocache = new Octocache({ authToken })
+
+    reporter?.push(`About to rename branch '${mainBranch}' to '${MAIN}'...`)
+    octocache.request(`POST /repos/${projectFQN}/branches/${mainBranch}/rename`, { new_name : MAIN })
+    reporter?.push('   success.')
 
     // Update our understanding of remote branches
-    const fetchResult = shell.exec(`cd ${projectPath} && git fetch -p ${originRemote}`)
-    if (fetchResult !== 0) { throw createError(`'git fetch ${originRemote}' failed at '${projectPath}': ${fetchResult.stderr}.`) }
+    tryExec(`cd ${projectPath} && git fetch -p ${originRemote}`)
 
     // update local branch
-    const branchList = shell.exec(`cd ${projectPath} && git branch -l`)
-    if (branchList.code !== 0) throw createError(`Could not list branches at '${projectPath}'.`)
+    const branchList =
+      tryExec(`cd ${projectPath} && git branch -l`, { msg : `Could not list branches at '${projectPath}'` }).stdout
     const branchNames = branchList.split('\n').map((e) => e.trim().replace(/^\*\s*/, ''))
     if (branchNames.includes(MAIN)) reporter.push(`Local branch '${MAIN}' already exists.`)
     else {
       reporter?.push(`About to rename local branch from <code>${mainBranch}<rst> to <code>${MAIN}<rst>...`)
-      const localResult = shell.exec(`cd ${projectPath} && git branch -m ${mainBranch} ${MAIN}`)
-      if (localResult.code !== 0) {
-        throw createError.InternalServerError(`Could not rename main branch from '${mainBranch}' to '${MAIN}': `
-          + localResult.stderr)
-      }
+      tryExec(
+        `cd ${projectPath} && git branch -m ${mainBranch} ${MAIN}`,
+        { msg : `Could not rename main branch from '${mainBranch}' to '${MAIN}'.` })
       reporter?.push(`Renamed local branch '${mainBranch}' to '${MAIN}'.`)
     }
 
     mainBranch = MAIN
 
-    const trackingResult = shell.exec(`cd ${projectPath} && git branch --set-upstream-to ${originRemote}/${MAIN}`)
-    if (trackingResult.code !== 0) {
-      throw createError.InternalServerError(`Could not update local branch '${MAIN} to track ${originRemote}/${MAIN}: `
-        + trackingResult.stderr)
-    }
+    tryExec(
+      `cd ${projectPath} && git branch --set-upstream-to ${originRemote}/${MAIN}`,
+      { msg : `Could not update local branch '${MAIN} to track ${originRemote}/${MAIN}.` }
+    )
+
     reporter?.push(`Updated local main branch '${MAIN}' to track ${originRemote}/${MAIN}'.`)
   }
 }

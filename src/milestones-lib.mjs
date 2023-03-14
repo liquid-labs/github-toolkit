@@ -1,7 +1,10 @@
 import * as fs from 'node:fs/promises'
 import * as sysPath from 'node:path'
 
-import shell from 'shelljs'
+import { Octocache } from '@liquid-labs/octocache'
+import { tryExec } from '@liquid-labs/shell-toolkit'
+
+import { getGitHubAPIAuthToken } from './access-lib'
 
 const preReleaseRe = /([0-9.]+)-([a-z]+)\.\d+$/
 const setupGitHubMilestones = async({ model, projectFQN, projectPath, reporter, unpublished }) => {
@@ -10,7 +13,7 @@ const setupGitHubMilestones = async({ model, projectFQN, projectPath, reporter, 
   const milestones = ['backlog']
   let currVersion
   if (unpublished === false) { // i.e., is published
-    const result = shell.exec(`npm info '${projectFQN}'`)
+    const result = tryExec(`npm info '${projectFQN}'`, { noThrow : true })
     if (result.code !== 0) {
       reporter.push(`<error>Did not find npm package '${projectFQN}'.<rst>`)
     }
@@ -42,17 +45,21 @@ const setupGitHubMilestones = async({ model, projectFQN, projectPath, reporter, 
     milestones.push(goldVersion)
   }
   else {
-    const goldVersion = shell.exec(`semver "${currVersion}" --increment premajor --preid alpha`).slice(0, -2)
+    // the 'slice' removes the trailing prerelease '-0'
+    const goldVersion = tryExec(`semver "${currVersion}" --increment premajor --preid alpha`).stdout.slice(0, -2)
     milestones.push(goldVersion)
   }
 
-  const currMilestoneString = shell.exec(`hub api "/repos/${projectFQN}/milestones"`)
+  const authToken = await getGitHubAPIAuthToken({ reporter })
+  const octocache = new Octocache({ authToken })
+
+  const currMilestoneString = octocache.request(`GET /repos/${projectFQN}/milestones`)
   const currMilestaneData = JSON.parse(currMilestoneString)
   const currMilestoneNames = currMilestaneData.map((m) => m.title)
 
   let milestonesSynced = true
   for (const title of milestones) {
-    if (!ensureMilestone({ currMilestoneNames, reporter, projectFQN, title })) milestonesSynced = false
+    if (!await ensureMilestone({ currMilestoneNames, reporter, projectFQN, title })) milestonesSynced = false
   }
   reporter.push('Milestone setup complete.')
   if (milestonesSynced === false) {
@@ -60,15 +67,18 @@ const setupGitHubMilestones = async({ model, projectFQN, projectPath, reporter, 
   }
 }
 
-const ensureMilestone = ({ currMilestoneNames, reporter, projectFQN, title }) => {
+const ensureMilestone = async({ currMilestoneNames, reporter, projectFQN, title }) => {
   if (currMilestoneNames.includes(title)) {
     reporter.push(`Milestone '${title}' already present.`)
     return true
   }
   else {
     reporter.push(`Attempting to add milestone '${title}'...`)
-    const result = shell.exec(`hub api -X POST "/repos/${projectFQN}/milestones" -f title="${title}"`)
-    if (result.code === 0) {
+    try {
+      const authToken = await getGitHubAPIAuthToken({ reporter })
+      const octocache = new Octocache({ authToken })
+
+      const result = octocache.request(`POST /repos/${projectFQN}/milestones`, { title })
       const resultData = JSON.parse(result)
       const titleOut = resultData.title
       const number = resultData.number
@@ -80,8 +90,8 @@ const ensureMilestone = ({ currMilestoneNames, reporter, projectFQN, title }) =>
       }
       return true
     }
-    else {
-      reporter.push(`<error>Failed to create milestone '${title}': ${result.stderr}`)
+    catch (e) {
+      reporter.push(`<error>Failed to create milestone '${title}': ${e.message}`, { cause : e })
       return false
     }
   }
