@@ -59,7 +59,7 @@ const setupGitHubLabels = async({ org, noDeleteLabels, projectFQN, reporter }) =
     }
     catch (e) {
       if (tryCount >= 5) {
-        throw createError.InternalServerError(`There was a problem retrieving labels for '${projectFQN}': ${e.message}`, { cause: e })
+        throw createError.InternalServerError(`There was a problem retrieving labels for '${projectFQN}': ${e.message}`, { cause : e })
       }
     }
   }

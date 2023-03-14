@@ -19,7 +19,7 @@ const regularizeRemote = ({ projectPath, reporter }) => {
   }
 }
 
-const regularizeMainBranch = async ({ authToken, projectFQN, projectPath, reporter }) => {
+const regularizeMainBranch = async({ authToken, projectFQN, projectPath, reporter }) => {
   let [originRemote, mainBranch] = determineOriginAndMain({ projectPath })
 
   if (mainBranch !== MAIN) {
@@ -39,7 +39,6 @@ const regularizeMainBranch = async ({ authToken, projectFQN, projectPath, report
   if (branchNames.includes(MAIN)) reporter.push(`Local branch '${MAIN}' already exists.`)
   else {
     const localMain = determineLocalMain({ projectPath })
-
 
     reporter?.push(`About to rename local branch from <code>${localMain}<rst> to <code>${MAIN}<rst>...`)
     tryExec(
