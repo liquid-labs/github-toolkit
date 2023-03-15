@@ -74,11 +74,11 @@ const setupGitHubLabels = async({ org, noDeleteLabels, projectFQN, reporter }) =
     if (noDeleteLabels === true) labelsSynced = false
     else {
       try {
-        octocache.reqeust(`DELETE /repos/${projectFQN}/labels/${excessLabelName}`)
+        await octocache.request(`DELETE /repos/${projectFQN}/labels/{label}`, { label : excessLabelName })
         currLabelData.splice(currLabelData.findIndex((l) => l.name === excessLabelName), 1)
       }
       catch (e) {
-        reporter.push(`<warn>There was an error removing excess label '${excessLabelName}.<rst>`)
+        reporter.push(`<warn>There was an error removing excess label '${excessLabelName}<rst>: ${e.message}`, { cause : e })
       }
     }
   }
@@ -103,7 +103,7 @@ const setupGitHubLabels = async({ org, noDeleteLabels, projectFQN, reporter }) =
     if (description !== currDesc || color !== currColor) {
       reporter.push(`Updating definition for label '<em>${name}<rst>'...`)
       try {
-        await octocache.request(`PATCH /repos/${projectFQN}/labels/${name}`, { color, description })
+        await octocache.request(`PATCH /repos/${projectFQN}/labels/{label}`, { color, description, label : name })
       }
       catch (e) {
         labelsSynced = false
