@@ -2,6 +2,8 @@ import { determineLocalMain, determineOriginAndMain } from '@liquid-labs/git-too
 import { Octocache } from '@liquid-labs/octocache'
 import { tryExec } from '@liquid-labs/shell-toolkit'
 
+import { getGitHubAPIAuthToken } from './access-lib'
+
 const ORIGIN = 'origin'
 const MAIN = 'main'
 
@@ -23,6 +25,7 @@ const regularizeMainBranch = async({ authToken, projectFQN, projectPath, reporte
   let [originRemote, mainBranch] = determineOriginAndMain({ projectPath })
 
   if (mainBranch !== MAIN) {
+    authToken = authToken || await getGitHubAPIAuthToken({ reporter })
     const octocache = new Octocache({ authToken })
 
     reporter?.push(`About to rename branch '${mainBranch}' to '${MAIN}'...`)
@@ -30,7 +33,8 @@ const regularizeMainBranch = async({ authToken, projectFQN, projectPath, reporte
     reporter?.push('   success.')
 
     // Update our understanding of remote branches
-    tryExec(`cd ${projectPath} && git fetch -p ${originRemote}`)
+    // TODO: not sure why, but this results in a non-zero exit even when successful; it looks like it exits with !0 if branches were pruned?
+    tryExec(`cd '${projectPath}' && git fetch -p ${originRemote}`, { noThrow : true })
   }
   // update local branch
   const branchList =
