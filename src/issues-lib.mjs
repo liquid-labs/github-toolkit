@@ -29,7 +29,7 @@ const claimIssues = async({
 
   const issuesUpdated = []
   for (const issue of issues) {
-    reporter?.push(`Checking issue '${issue}'...`)
+    reporter?.push(`Applying assigned label '${issue}'...`)
     const [org, projectBaseName, issueNumber] = issue.split('/')
 
     try {
@@ -176,18 +176,33 @@ const verifyIssuesExist = async({ authToken, issues, notClosed = false }) => {
   return issueData
 }
 
-const verifyIssuesAvailable = async({ authToken, claimLabel = DEFAULT_CLAIM_LABEL, issues }) => {
-  const issueData = await verifyIssuesExist({ authToken, issues, notClosed : true })
+const verifyIssuesAvailable = async({
+  authToken,
+  availableFor,
+  claimLabel = DEFAULT_CLAIM_LABEL,
+  issues,
+  reporter
+}) => {
+  const issueData = await verifyIssuesExist({ authToken, issues, notClosed : true, reporter })
 
   // first, we check everything
   for (const issue of issueData) {
     // eslint-disable-next-line prefer-regex-literals
     const issueId = issue.url.replace(new RegExp('.+/([^/]+/[^/]+)/issues/(\\d+)'), '$1-$2')
 
-    if ((issueData.labels || []).some((l) => l.name === claimLabel || l.assignees?.length > 0)) {
+    if (availableFor !== undefined && issue.assignees.some((a) => a.login === availableFor)) {
+      reporter.push(`Issue ${issueId} already assigned to '${availableFor}'.`)
+      continue
+    }
+
+    if ((issueData.labels || []).some((l) => l.name === claimLabel) || issueData.assignees?.length > 0) {
+      reporter.push(`Issue ${issueId} has already been assigned to someone else.`)
       throw createError.BadRequest(`Issue ${issueId} has already been claimed.`)
     }
+    reporter.push(`Issue ${issueId} is available.`)
   }
+
+  return false
 }
 
 const throwVerifyError = ({ e, issueId, issuesUpdated, targetName, targetType }) => {
