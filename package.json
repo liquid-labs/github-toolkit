@@ -1,6 +1,6 @@
 {
   "name": "@liquid-labs/github-toolkit",
-  "version": "1.0.0-alpha.7",
+  "version": "1.0.0-alpha.8",
   "description": "",
   "main": "dist/github-toolkit.js",
   "scripts": {
