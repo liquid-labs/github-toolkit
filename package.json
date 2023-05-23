@@ -25,7 +25,7 @@
     "tags": []
   },
   "devDependencies": {
-    "@liquid-labs/catalyst-scripts": "^1.0.0-alpha.57",
+    "@liquid-labs/catalyst-scripts-node-project": "^1.0.0-alpha.15",
     "js-yaml": "^4.1.0"
   },
   "dependencies": {
