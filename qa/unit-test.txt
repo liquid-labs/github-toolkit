@@ -1,0 +1,16 @@
+Test git rev: 946a21072f0ceea0a964be1d02089517407f316f
+PASS test/determine-current-release.test.js
+PASS test/access-lib.test.js
+-------------------------------|---------|----------|---------|---------|-------------------
+File                           | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------------------|---------|----------|---------|---------|-------------------
+All files                      |   64.28 |       40 |   68.75 |   65.67 |                   
+ access-lib.mjs                |   55.68 |     35.8 |   61.53 |    57.4 | 39-53,67-84,88-89 
+ determine-current-release.mjs |   95.83 |    64.28 |     100 |     100 | 17-29             
+-------------------------------|---------|----------|---------|---------|-------------------
+
+Test Suites: 2 passed, 2 total
+Tests:       4 passed, 4 total
+Snapshots:   0 total
+Time:        1.551 s, estimated 4 s
+Ran all test suites.
