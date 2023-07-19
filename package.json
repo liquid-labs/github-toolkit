@@ -31,7 +31,7 @@
   "dependencies": {
     "@liquid-labs/git-toolkit": "^1.0.0-alpha.9",
     "@liquid-labs/octocache": "^1.0.0-alpha.3",
-    "@liquid-labs/shell-toolkit": "^1.0.0-alpha.4",
+    "@liquid-labs/shell-toolkit": "^1.0.0-alpha.6",
     "http-errors": "^2.0.0"
   }
 }
