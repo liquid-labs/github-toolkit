@@ -11,6 +11,9 @@
     "preversion": "npm run qa",
     "qa": "make qa"
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "keywords": [],
   "author": "Zane Rockenbaugh <zane@liquid-labs.com>",
   "license": "UNLICENSED",
@@ -29,9 +32,9 @@
     "js-yaml": "^4.1.0"
   },
   "dependencies": {
-    "@liquid-labs/git-toolkit": "^1.0.0-alpha.9",
+    "@liquid-labs/git-toolkit": "^1.0.0-alpha.15",
     "@liquid-labs/octocache": "^1.0.0-alpha.3",
-    "@liquid-labs/shell-toolkit": "^1.0.0-alpha.6",
+    "@liquid-labs/shell-toolkit": "^1.0.0-alpha.7",
     "http-errors": "^2.0.0"
   }
 }
