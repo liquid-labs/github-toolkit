@@ -1,0 +1,18 @@
+Test git rev: 39e7e28f47a4fe4e8e98e26e4fc15ec42dc1b1bf
+PASS test/get-github-org-and-project.test.js
+PASS test/determine-current-release.test.js
+PASS test/access-lib.test.js
+--------------------------------|---------|----------|---------|---------|------------------------------------
+File                            | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                  
+--------------------------------|---------|----------|---------|---------|------------------------------------
+All files                       |   65.47 |    46.37 |   55.55 |   65.06 |                                    
+ access-lib.mjs                 |   53.33 |    36.36 |   42.85 |   52.54 | 10,23,42-52,67-84,88-89,99,107,112 
+ determine-current-release.mjs  |   93.33 |    71.42 |     100 |   93.33 | 36                                 
+ get-github-org-and-project.mjs |     100 |      100 |     100 |     100 |                                    
+--------------------------------|---------|----------|---------|---------|------------------------------------
+
+Test Suites: 3 passed, 3 total
+Tests:       8 passed, 8 total
+Snapshots:   0 total
+Time:        1.452 s
+Ran all test suites.
