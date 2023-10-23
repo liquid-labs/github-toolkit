@@ -16,7 +16,7 @@ import { getGitHubAPIAuthToken } from './access-lib'
  */
 const determineCurrentRelease = async({ authToken, githubOwner, githubProject, project, reporter }) => {
   reporter?.push('Getting current release information...')
-  githubProject = guthubProject || githubOwner + '/' + project
+  githubProject = githubProject || githubOwner + '/' + project
 
   if (authToken === undefined) {
     authToken = await getGitHubAPIAuthToken({ reporter })
