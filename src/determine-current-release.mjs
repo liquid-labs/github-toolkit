@@ -14,8 +14,9 @@ import { getGitHubAPIAuthToken } from './access-lib'
  * - `project`: the project/repo base name.
  * - `reporter`: (opt) user action reporter
  */
-const determineCurrentRelease = async({ authToken, githubOwner, project, reporter }) => {
+const determineCurrentRelease = async({ authToken, githubOwner, githubProject, project, reporter }) => {
   reporter?.push('Getting current release information...')
+  githubProject = guthubProject || githubOwner + '/' + project
 
   if (authToken === undefined) {
     authToken = await getGitHubAPIAuthToken({ reporter })
@@ -24,7 +25,7 @@ const determineCurrentRelease = async({ authToken, githubOwner, project, reporte
   const octocache = new Octocache({ authToken })
 
   try {
-    const results = await octocache.request(`GET /repos/${githubOwner}/${project}/releases/latest`)
+    const results = await octocache.request(`GET /repos/${githubProject}/releases/latest`)
     const currRelease = results.tag_name
     return currRelease
   }
