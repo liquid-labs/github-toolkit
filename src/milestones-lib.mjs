@@ -7,28 +7,26 @@ import { tryExec } from '@liquid-labs/shell-toolkit'
 import { getGitHubAPIAuthToken } from './access-lib'
 
 const preReleaseRe = /([0-9.]+)-([a-z]+)\.\d+$/
-const setupGitHubMilestones = async({ model, projectFQN, projectPath, reporter, unpublished }) => {
+const setupGitHubMilestones = async({ pkgJSON, projectFQN, projectPath, reporter, unpublished }) => {
   reporter.push('Setting up milestones...')
 
   const milestones = ['backlog']
-  let currVersion
   if (unpublished === false) { // i.e., is published
     const result = tryExec(`npm info '${projectFQN}'`, { noThrow : true })
     if (result.code !== 0) {
       reporter.push(`<error>Did not find npm package '${projectFQN}'.<rst>`)
     }
   }
-  if (currVersion === undefined) {
-    if (projectPath !== undefined) {
-      const pkgString = await fs.readFile(sysPath.join(projectPath, 'package.json'))
-      const pkgData = JSON.parse(pkgString)
-      currVersion = pkgData.version
-    }
 
-    if (currVersion === undefined) {
-      const packageData = model?.playground?.projects?.[projectFQN].packageJSON
-      currVersion = packageData?.version
-    }
+  let currVersion
+  if (pkgJSON !== undefined) {
+    currVersion = pkgJSON.version
+  }
+
+  if (currVersion === undefined && projectPath !== undefined) {
+    const pkgString = await fs.readFile(sysPath.join(projectPath, 'package.json'))
+    pkgJSON = JSON.parse(pkgString)
+    currVersion = pkgJSON.version
   }
 
   const preReleaseMatch = currVersion.match(preReleaseRe)

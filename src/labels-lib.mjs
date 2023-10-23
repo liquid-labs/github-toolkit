@@ -37,10 +37,8 @@ const defaultLabels = [
   }
 ]
 
-const setupGitHubLabels = async({ org, noDeleteLabels, projectFQN, reporter }) => {
+const setupGitHubLabels = async({ noDeleteLabels, projectFQN, projectLabels = defaultLabels, reporter }) => {
   reporter.push(`Setting up labels for '${projectFQN}'`)
-
-  const projectLabels = org?.projects?.DEFAULT_LABELS || defaultLabels
 
   if (projectLabels === defaultLabels) {
     reporter.push('No project labels defined; using default label set...')
