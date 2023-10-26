@@ -1,0 +1,9 @@
+Test git rev: 6b713b2fcddeef528f175c57dd5e04eb4a2b0093
+
+/Users/zane/.liq/playground/liquid-labs/github-toolkit/src/get-github-org-and-project.mjs
+  15:17  error  Missing space after key 'project'  key-spacing
+  15:26  error  'projectBaseName' is not defined   no-undef
+
+✖ 2 problems (2 errors, 0 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+
