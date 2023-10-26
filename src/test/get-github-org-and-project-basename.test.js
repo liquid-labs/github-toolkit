@@ -1,26 +1,26 @@
 /* global describe expect test */
 
-import { getGitHubOrgAndProject } from '../get-github-org-and-project'
+import { getGitHubOrgAndProjectBasename } from '../get-github-org-and-project-basename'
 
 // requires user to have API access
-describe('getGitHubOrgAndProject', () => {
+describe('getGitHubOrgAndProjectBasename', () => {
   test('works with string repositories', () => {
     const packageJSON = { repository : 'git+ssh://git@github.com/acme/foo-bar.git' }
-    expect(getGitHubOrgAndProject({ packageJSON })).toEqual({ org : 'acme', project : 'foo-bar' })
+    expect(getGitHubOrgAndProjectBasename({ packageJSON })).toEqual({ org : 'acme', projectBasename : 'foo-bar' })
   })
 
   test('works with object repositories', () => {
     const packageJSON = { repository : { url : 'git+ssh://git@github.com/acme/foo-bar.git' } }
-    expect(getGitHubOrgAndProject({ packageJSON })).toEqual({ org : 'acme', project : 'foo-bar' })
+    expect(getGitHubOrgAndProjectBasename({ packageJSON })).toEqual({ org : 'acme', projectBasename : 'foo-bar' })
   })
 
   test('returns undefined values when no match', () => {
     const packageJSON = { repository : 'git+ssh://git@anotherplace.com/acme/foo-bar.git' }
-    expect(getGitHubOrgAndProject({ packageJSON })).toEqual({ org : undefined, project : undefined })
+    expect(getGitHubOrgAndProjectBasename({ packageJSON })).toEqual({ org : undefined, projectBasename : undefined })
   })
 
   test('throws error when no match and required', () => {
     const packageJSON = { repository : 'git+ssh://git@anotherplace.com/acme/foo-bar.git' }
-    expect(() => getGitHubOrgAndProject({ packageJSON, require : true })).toThrow()
+    expect(() => getGitHubOrgAndProjectBasename({ packageJSON, require : true })).toThrow()
   })
 })
