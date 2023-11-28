@@ -2,9 +2,66 @@ import * as fs from 'node:fs/promises'
 import * as sysPath from 'node:path'
 
 import { Octocache } from '@liquid-labs/octocache'
+import * as semverPlus from '@liquid-labs/semver-plus'
 import { tryExec } from '@liquid-labs/shell-toolkit'
 
 import { getGitHubAPIAuthToken } from './access-lib'
+
+/**
+ * Retrieves the "current" milestone data or, if not available, then the 'backlog' milestone or null if neither
+ * available. The "current milestone" is the milestone with the least semver version or range name.
+ */
+const getCurrentMilestone = async({
+  authToken,
+  projectFQN = throw new Error("Must specify 'projectFQN'."),
+  reporter
+}) => {
+  reporter?.push('Looking for current milestone...')
+  const openMilestones = await getMilestones({ authToken, projectFQN, reporter })
+  const milestoneNames = openMilestones.map(({ title }) => title)
+  const versionNames = semverPlus.filterValidVersionOrRange({ input : milestoneNames })
+
+  if (versionNames.length === 0) {
+    reporter?.push('Looking for fallback milestone...')
+    return getFallbackMilestone(openMilestones)
+  }
+
+  const sortedVersions = semverPlus.xSort(versionNames)
+  const currVersion = sortedVersions[0]
+  reporter?.push(`Found current milestone '${currVersion}'.`)
+  const currMilestone = openMilestones.find(({ title }) => title === currVersion)
+
+  return currMilestone
+}
+
+/**
+ * A helper function for `getCurrentMilestone` which looks for a 'backlog' and returns it, or if none found returns
+ * null.
+ */
+const getFallbackMilestone = (milestones) => {
+  if (milestones.length === 0) {
+    return null
+  }
+  const backlog = milestones.find(({ name }) => name === 'backlog')
+
+  return backlog === undefined ? null : backlog
+}
+
+const getMilestones = async({
+  authToken,
+  projectFQN = throw new Error("Must specify 'projectFQN'."),
+  reporter,
+  state = 'open'
+}) => {
+  reporter?.push('Retrieving milestones...')
+
+  authToken = authToken || await getGitHubAPIAuthToken({ reporter })
+  const octocache = new Octocache({ authToken })
+
+  const currMilestoneData = await octocache.paginate(`GET /repos/${projectFQN}/milestones`)
+
+  return currMilestoneData
+}
 
 const preReleaseRe = /([0-9.]+)-([a-z]+)\.\d+$/
 const setupGitHubMilestones = async({ pkgJSON, projectFQN, projectPath, reporter, unpublished }) => {
@@ -48,10 +105,7 @@ const setupGitHubMilestones = async({ pkgJSON, projectFQN, projectPath, reporter
     milestones.push(goldVersion)
   }
 
-  const authToken = await getGitHubAPIAuthToken({ reporter })
-  const octocache = new Octocache({ authToken })
-
-  const currMilestoneData = await octocache.request(`GET /repos/${projectFQN}/milestones`)
+  const currMilestoneData = getMilestones({ projectFQN, reporter })
   const currMilestoneNames = currMilestoneData.map((m) => m.title)
 
   let milestonesSynced = true
@@ -93,4 +147,4 @@ const ensureMilestone = async({ currMilestoneNames, reporter, projectFQN, title 
   }
 }
 
-export { setupGitHubMilestones }
+export { getCurrentMilestone, getMilestones, setupGitHubMilestones }

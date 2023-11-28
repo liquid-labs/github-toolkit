@@ -3,7 +3,8 @@ import createError from 'http-errors'
 import { workBranchName } from '@liquid-labs/git-toolkit'
 import { Octocache } from '@liquid-labs/octocache'
 
-import { determineGitHubLogin } from './access-lib'
+import { determineGitHubLogin, getGitHubAPIAuthToken } from './access-lib'
+import { getCurrentMilestone } from './milestones-lib'
 
 const DEFAULT_CLAIM_LABEL = 'assigned'
 
@@ -88,6 +89,36 @@ const claimIssues = async({
       }
     }
   } // for (const issue...)
+}
+
+const createIssue = async({
+  authToken,
+  projectFQN = throw new Error("Must provide 'projectFQN' for createIssue()."),
+  title = throw new Error("Must provide issues 'title' for createIssue()."),
+  body = throw new Error("Must provide issues 'issueBody' for createIssue()."),
+  labels,
+  milestoneNumber,
+  reporter
+}) => {
+  reporter?.push(`Creating issue '${title}'...`)
+
+  const options = {
+    title, body, labels
+  }
+
+  authToken = authToken || await getGitHubAPIAuthToken({ reporter })
+  if (milestoneNumber === undefined) {
+    const currentMilestone = await getCurrentMilestone({ authToken, projectFQN, reporter })
+    options.milestone = currentMilestone.number
+  }
+  else if (milestoneNumber !== false) {
+    options.milestone = milestoneNumber
+  }
+
+  const octocache = new Octocache({ authToken })
+  const issueData = await octocache.request(`POST /repos/${projectFQN}/issues`, options)
+
+  return issueData
 }
 
 const releaseIssues = async({ authToken, comment, issues, noUnassign, noUnlabel, reporter }) => {
@@ -215,6 +246,7 @@ const throwVerifyError = ({ e, issueId, issuesUpdated, targetName, targetType })
 
 export {
   claimIssues,
+  createIssue,
   releaseIssues,
   verifyIssuesExist,
   verifyIssuesAvailable
