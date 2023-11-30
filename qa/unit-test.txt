@@ -1,0 +1,25 @@
+Test git rev: d3fa23e678f1b14158ce8b680e781331692afa05
+(node:71715) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+PASS test/determine-current-release.test.js
+PASS test/access-lib.test.js
+PASS test/get-github-org-and-project-basename.test.js
+-----------------------------------------|---------|----------|---------|---------|------------------------------------
+File                                     | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                  
+-----------------------------------------|---------|----------|---------|---------|------------------------------------
+All files                                |   14.24 |    11.92 |     9.8 |   14.94 |                                    
+ access-lib.mjs                          |   53.33 |    36.36 |   42.85 |   52.54 | 10,23,42-52,67-84,88-89,99,107,112 
+ branch-lib.mjs                          |       0 |        0 |       0 |       0 | 1-62                               
+ determine-current-release.mjs           |   93.75 |    77.77 |     100 |   93.75 | 37                                 
+ get-github-org-and-project-basename.mjs |     100 |      100 |     100 |     100 |                                    
+ index.js                                |       0 |        0 |       0 |       0 | 1-7                                
+ issues-lib.mjs                          |       0 |        0 |       0 |       0 | 1-244                              
+ labels-lib.mjs                          |       0 |        0 |       0 |       0 | 1-114                              
+ milestones-lib.mjs                      |       0 |        0 |       0 |       0 | 1-145                              
+-----------------------------------------|---------|----------|---------|---------|------------------------------------
+
+Test Suites: 3 passed, 3 total
+Tests:       8 passed, 8 total
+Snapshots:   0 total
+Time:        2.345 s
+Ran all test suites.
