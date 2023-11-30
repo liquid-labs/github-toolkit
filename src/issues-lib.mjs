@@ -95,7 +95,7 @@ const createIssue = async({
   authToken,
   projectFQN = throw new Error("Must provide 'projectFQN' for createIssue()."),
   title = throw new Error("Must provide issues 'title' for createIssue()."),
-  body = throw new Error("Must provide issues 'issueBody' for createIssue()."),
+  body = '',
   labels,
   milestoneNumber,
   reporter
