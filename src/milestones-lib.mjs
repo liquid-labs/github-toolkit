@@ -105,7 +105,7 @@ const setupGitHubMilestones = async({ pkgJSON, projectFQN, projectPath, reporter
     milestones.push(goldVersion)
   }
 
-  const currMilestoneData = getMilestones({ projectFQN, reporter })
+  const currMilestoneData = await getMilestones({ projectFQN, reporter })
   const currMilestoneNames = currMilestoneData.map((m) => m.title)
 
   let milestonesSynced = true
