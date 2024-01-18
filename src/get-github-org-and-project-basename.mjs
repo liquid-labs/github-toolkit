@@ -1,4 +1,4 @@
-const urlRegEx = /github.com[/:]([^/]+)\/([^.]+)/
+const urlRegEx = /github.com[/:]([^/]+)\/(.+?)(?:\.git)?$/ // if ends in '.git', we omit that
 
 const getGitHubOrgAndProjectBasename = ({ packageJSON, require }) => {
   const { repository } = packageJSON
