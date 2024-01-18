@@ -109,7 +109,12 @@ const createIssue = async({
   authToken = authToken || await getGitHubAPIAuthToken({ reporter })
   if (milestoneNumber === undefined) {
     const currentMilestone = await getCurrentMilestone({ authToken, projectFQN, reporter })
-    options.milestone = currentMilestone.number
+    if (currentMilestone !== null) {
+      options.milestone = currentMilestone.number
+    }
+    else {
+      reporter.push(`Could not find milestone for '${projectFQN}'.`)
+    }
   }
   else if (milestoneNumber !== false) {
     options.milestone = milestoneNumber
