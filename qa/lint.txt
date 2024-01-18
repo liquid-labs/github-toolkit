@@ -1,0 +1,9 @@
+Test git rev: c10b192f032d7411b296031277ba3d94cf597fde
+
+/Users/zane/playground/liquid-labs/github-toolkit/src/test/get-github-org-and-project-basename.test.js
+   9:42  error  Missing space after key 'url'     key-spacing
+  13:37  error  Multiple spaces found before '}'  no-multi-spaces
+
+✖ 2 problems (2 errors, 0 warnings)
+  2 errors and 0 warnings potentially fixable with the `--fix` option.
+
