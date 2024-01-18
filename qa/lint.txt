@@ -1,8 +1,0 @@
-Test git rev: 3f3cb605169d21d1745814cac9f3b7e555ee767f
-
-/Users/zane/playground/liquid-labs/github-toolkit/src/test/get-github-org-and-project-basename.test.js
-  10:37  error  Multiple spaces found before '}'  no-multi-spaces
-
-✖ 1 problem (1 error, 0 warnings)
-  1 error and 0 warnings potentially fixable with the `--fix` option.
-
