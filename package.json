@@ -35,7 +35,7 @@
   "dependencies": {
     "@liquid-labs/git-toolkit": "^1.0.0-alpha.15",
     "@liquid-labs/octocache": "^1.0.0-alpha.3",
-    "@liquid-labs/semver-plus": "^1.0.0-alpha.10",
+    "@liquid-labs/semver-plus": "^1.0.0-alpha.11",
     "@liquid-labs/shell-toolkit": "^1.0.0-alpha.7",
     "http-errors": "^2.0.0"
   }
