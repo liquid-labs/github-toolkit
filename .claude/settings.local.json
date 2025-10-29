@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make test:*)",
+      "Bash(git mv:*)",
+      "Bash(TEST=get-latest-release.test.js make test:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
