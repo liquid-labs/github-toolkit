@@ -1,0 +1,25 @@
+Test git rev: 80366c548f0c7fe5e5547a592fa659cff4a95f90
+PASS test/get-latest-release.test.js
+PASS test/issues-lib.test.js
+PASS test/milestones-lib.test.js
+PASS test/access-lib.test.js
+PASS test/get-github-org-and-project-basename.test.js
+-----------------------------------------|---------|----------|---------|---------|--------------------------------------------------
+File                                     | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                
+-----------------------------------------|---------|----------|---------|---------|--------------------------------------------------
+All files                                |   31.42 |    23.05 |   30.18 |   31.81 |                                                  
+ access-lib.mjs                          |   53.33 |    36.36 |   42.85 |   52.54 | 10,23,42-52,67-84,88-89,99,107,112               
+ branch-lib.mjs                          |       0 |        0 |       0 |       0 | 1-62                                             
+ get-github-org-and-project-basename.mjs |     100 |      100 |     100 |     100 |                                                  
+ get-latest-release.mjs                  |     100 |    94.11 |     100 |     100 | 21                                               
+ index.js                                |       0 |        0 |       0 |       0 | 1-7                                              
+ issues-lib.mjs                          |   23.14 |     6.38 |   18.18 |   23.47 | 20-88,96-126,130-185,202,209-212,225-241,245-249 
+ labels-lib.mjs                          |       0 |        0 |       0 |       0 | 1-114                                            
+ milestones-lib.mjs                      |   38.46 |    39.58 |   58.33 |   37.64 | 25-26,42-47,68-117,122-145                       
+-----------------------------------------|---------|----------|---------|---------|--------------------------------------------------
+
+Test Suites: 5 passed, 5 total
+Tests:       27 passed, 27 total
+Snapshots:   0 total
+Time:        6.742 s
+Ran all test suites.
