@@ -19,7 +19,7 @@ const getCurrentMilestone = async({
   reporter?.push('Looking for current milestone...')
   const openMilestones = await getMilestones({ authToken, projectFQN, reporter })
   const milestoneNames = openMilestones.map(({ title }) => title)
-  const versionNames = milestoneNames.filter(semverPlus.validVersionOrRange)  
+  const versionNames = milestoneNames.filter(semverPlus.validVersionOrRange)
 
   if (versionNames.length === 0) {
     reporter?.push('Looking for fallback milestone...')

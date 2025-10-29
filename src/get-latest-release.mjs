@@ -35,7 +35,8 @@ const getLatestRelease = async({ authToken, considerAll = false, githubOwner, gi
     const tagNames = releases.map(release => release.tag_name)
     const sorted = semverPlus.xSort(tagNames)
     return sorted[sorted.length - 1]
-  } else {
+  }
+  else {
     const results = await octocache.request(`GET /repos/${githubProject}/releases/latest`)
     const currRelease = results.tag_name
     return currRelease
